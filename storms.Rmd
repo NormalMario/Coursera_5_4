@@ -1,0 +1,88 @@
+---
+title: "Storm Data Analysis"
+author: "Mario"
+date: "18 Dezember 2016"
+output: 
+  html_document: 
+    keep_md: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Synopsis
+
+
+
+### Background
+
+This analysis is based on data provided by the U.S. National Oceanic and Atmospheric
+Administration (NOAA). The database contains information on major storms and weather
+events in the United States between 1950 and 2011. The goal of this study is
+to find out which types of events are most harmful with respect to human
+and economic damage.
+
+### Data Processing
+
+Data Analysis is done with the help of R, a software for statistical programming. 
+To be reproducible we include the code being used to obtain the results.
+
+#### Data Extraction
+
+We first load the raw data and select those variables relevant to the research question.
+
+```{r cache=TRUE, warning=FALSE}
+myData <- read.csv("repdata_data_StormData.csv.bz2", header = TRUE, sep = ",", quote = "\"")
+library(dplyr) # load data manipulation functionality
+myData2 <- select(myData, EVTYPE, FATALITIES, INJURIES, PROPDMG,
+                        PROPDMGEXP) # extract relevant variables
+```
+
+#### Data Manipulation
+
+Then we need to prepare the data for further analysis:
+
+```{r cache=TRUE, warning=FALSE}
+head(myData2) # extract relevant variables
+sort(table(myData2$PROPDMGEXP), decreasing = TRUE) # examine unit of property damage
+```
+
+According to the storm data documentation, 'K' (Thousand Dollar), 'M' (Million Dollar),
+and 'B' (Billion Dollar) are valid units for property damage. While we can assume that
+'m' is meant to be 'M' there is no clear interpretation available for 
+'B', '0', '1', '2', '5', '?'. We will therefore ignore these cases while we're
+going to treat 'm' as 'M'.
+
+```{r cache=TRUE, warning=FALSE}
+head(myData2) # extract relevant variables
+sort(table(myData2$PROPDMGEXP), decreasing = TRUE) # examine unit of property damage
+```
+
+
+## Results
+
+
+
+
+
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
