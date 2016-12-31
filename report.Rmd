@@ -3,14 +3,13 @@ title: '60 Years of Weather Catastrophies: How they Harm Health and Economy'
 author: "Mario"
 date: "December 31th,  2016"
 output:
+  pdf_document: default
   html_document:
     keep_md: yes
-  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-setwd('Q:\\Organisation\\Privat\\Giesel_Mario\\XXX_R\\Coursera\\Kurs5\\week4')
 ```
 
 ### Synopsis
