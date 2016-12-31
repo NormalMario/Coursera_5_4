@@ -1,0 +1,139 @@
+---
+title: '60 Years of Weather Catastrophies: How they Harm Health and Economy'
+author: "Mario"
+date: "December 31th,  2016"
+output:
+  html_document:
+    keep_md: yes
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+setwd('Q:\\Organisation\\Privat\\Giesel_Mario\\XXX_R\\Coursera\\Kurs5\\week4')
+```
+
+### Synopsis
+
+This study investigates the relation between weather catastrophy type and 
+damage inflicted on human health and economy. The results show that flood
+phenomena are the most dangerous evils for economy.
+Considering effects on human health tornados are the most dangerous evildoers - 
+both with respect to fatalities and also injuries. It seems that it is easier 
+for people to dodge flood occurences than the less predictable and fast tornados. 
+
+### Background
+
+This analysis is based on data provided by the U.S. National Oceanic and Atmospheric
+Administration (NOAA). The database contains information on major storms and weather
+events in the United States between 1950 and 2011. The goal of this study is
+to find out which types of events are most harmful with respect to population
+health and economic performance.
+
+### Data Processing
+
+Data Analysis is done with the help of R, a software for statistical programming. 
+To be reproducible we include the code we used to obtain the results.
+
+#### Data Extraction
+
+We first load the raw data and select the variables we assume as relevant to the research question.
+
+```{r cache=TRUE, warning=FALSE, message=FALSE}
+myData <- read.csv("repdata_data_StormData.csv.bz2", header = TRUE, sep = ",", quote = "\"")
+library(dplyr) # load data manipulation functionality
+myData2 <- select(myData, EVTYPE, FATALITIES, INJURIES, PROPDMG, PROPDMGEXP) # extract relevant variables
+```
+Here's the first six cases of the database:
+
+```{r cache=TRUE, warning=FALSE}
+head(myData2) # extract relevant variables
+```
+
+We chose the number of fatalities and injuries as indicators of population
+health damage and property damage in US Dollars as indicator for economic damage.
+
+#### Data Manipulation
+
+We need to prepare the data for further analysis. The variable PROPDMG
+contains the property damage size and the variable PROPDMGEXP gives the measurement unit. According to the storm data documentation, 'K' (Thousand Dollar), 'M' (Million Dollar), and 'B' (Billion Dollar) are valid units for property damage. However, as can be seen from following frequency table the data
+contain also other entries not defined:
+
+```{r cache=TRUE, warning=FALSE}
+sort(table(myData2$PROPDMGEXP), decreasing = TRUE) # examine unit of property damage
+```
+
+While no entry probably signifies 'no damage' we can assume that 'm' is meant to be 'M'. But there is no clear interpretation available for the other values. We will therefore ignore these cases while we're going to treat 'm' as 'M'.
+
+```{r cache=TRUE, warning=FALSE}
+options(scipen = 999) # no scientific notation
+myData2$PROPDMGEXP2[myData2$PROPDMGEXP == 'K'] <- 1000 # factor for PROPDMG is 1.000 etc.
+myData2$PROPDMGEXP2[myData2$PROPDMGEXP %in% c('M','m')] <- 1000000
+myData2$PROPDMGEXP2[myData2$PROPDMGEXP == 'B'] <- 1000000000
+table(myData2$PROPDMGEXP2)
+```
+Now we filter those cases that do have property damage and then  calculate final property damage in million Dollars:
+
+```{r cache=TRUE, warning=FALSE}
+myData3 <- filter(myData2, PROPDMGEXP2 > 999) # Take cases with valid measurement unit of PROPDMGEXP2
+myData3$PROPDMG2 <- myData3$PROPDMG * myData3$PROPDMGEXP2/1000000 # Property Damage in Mio.$
+head(myData3)
+```
+
+## Results
+
+Now we're calculating the sum of property damage in Mio.$ for each type of weather catastrophy.
+All in all there are `r length(unique(myData3$EVTYPE))` sources mentioned in the database.
+Let's look at the 20 most harmful sources of economic damage:
+
+```{r cache=TRUE, warning=FALSE}
+myData4 <- myData3 %>% group_by(EVTYPE) %>% summarise(mioDollar = sum(PROPDMG2)) %>% arrange(mioDollar)
+result <- tail(myData4, 20)
+print(arrange(result, desc(mioDollar)))
+```
+
+As can be seen from the table, flood catastrophies (rank 1) are the most harmful 
+sources of property damage
+with 144.6 Bio.$ estimated damage. Flash Flood (rank 5) and river flood (rank 11)
+are still further flood occurrences. Hurricanes, typhoons and tornados also exert 
+excessive damage on economy. Let's have this plotted:
+
+```{r cache=TRUE, warning=FALSE}
+dotchart(result$mioDollar,labels=result$EVTYPE,cex=.7,
+   main="Fig. 1:\nAccumulated Property Damage of Weather Catastrophies in USA (1950-2011)",
+   xlab="in Mio.$", color='black', bg='red', pt.cex = 2)
+```
+
+Let's also investigate effects on human health and calculate
+the total number of fatalities for each type of weather catastrophy.
+
+```{r cache=TRUE, warning=FALSE}
+myData5 <- myData2 %>% group_by(EVTYPE) %>% summarise(deaths = sum(FATALITIES)) %>% arrange(deaths)
+result <- tail(myData5, 20)
+print(arrange(result, desc(deaths)))
+```
+
+From this perspective tornados are the most dangerous live threatening events (5633 fatalities, rank 1)
+with excessive heat on the second rank. See also figure 2.
+```{r cache=TRUE, warning=FALSE}
+dotchart(result$deaths,labels=result$EVTYPE,cex=.7,
+   main="Fig. 2:\nAccumulated Fatalities due to Weather Catastrophies in USA (1950-2011)",
+   xlab="Number of people", color='black', bg='orange', pt.cex = 2)
+```
+
+A third and last point of view is related to the number of people who suffered injuries 
+from weather catastrophies. Let's tabulate this, as well:
+```{r cache=TRUE, warning=FALSE}
+myData6 <- myData2 %>% group_by(EVTYPE) %>% summarise(injury = sum(INJURIES)) %>% arrange(injury)
+result <- tail(myData6, 20)
+print(arrange(result, desc(injury)))
+```
+
+Again, tornados are the clear number one cause of injuries resulting from weather phenomena
+(91346 injured people, rank 1). This will also be shown graphically (see figure 3):
+
+```{r cache=TRUE, warning=FALSE}
+dotchart(result$injury,labels=result$EVTYPE,cex=.7,
+   main="Fig. 3:\nAccumulated People Injured due to Weather Catastrophies in USA (1950-2011)",
+   xlab="Number of people", color='black', bg='yellow', pt.cex = 2)
+```
